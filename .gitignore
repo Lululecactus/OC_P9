@@ -1,0 +1,15 @@
+# Environnement virtuel Python
+.venv/
+
+# Fichiers générés automatiquement par Python
+__pycache__/
+*.py[cod]
+
+# Fichiers propres à macOS
+.DS_Store
+
+# Fichiers temporaires de travail
+tmp/
+
+# Configuration locale pouvant contenir des secrets
+.env
