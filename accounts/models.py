@@ -1,3 +1,9 @@
-from django.db import models
+"""Définition du modèle utilisateur de LITRevu."""
 
-# Create your models here.
+from django.contrib.auth.models import AbstractUser
+
+
+class User(AbstractUser):
+    """Utilisateur de LITRevu"""
+
+    pass
