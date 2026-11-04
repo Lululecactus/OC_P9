@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}LITRevu{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'accounts/style.css' %}?v=20261104-2">
+    <script src="{% static 'accounts/book.js' %}?v=2" defer></script>
+</head>
+<body class="book-page">
+    <a class="skip-link" href="#main-content">Aller au contenu principal</a>
+    <main class="account-layout" id="main-content">
+        <div class="book-binding" aria-hidden="true">
+            <span class="book-cover"></span>
+            <span class="book-leaf" style="--leaf: 8"></span>
+            <span class="book-leaf" style="--leaf: 7"></span>
+            <span class="book-leaf" style="--leaf: 6"></span>
+            <span class="book-leaf" style="--leaf: 5"></span>
+            <span class="book-leaf" style="--leaf: 4"></span>
+            <span class="book-leaf" style="--leaf: 3"></span>
+            <span class="book-leaf" style="--leaf: 2"></span>
+            <span class="book-leaf" style="--leaf: 1"></span>
+        </div>
+        <section class="editorial" aria-labelledby="editorial-title">
+            <header class="editorial-header">
+                <a class="brand" href="{% url 'accounts:login' %}" aria-label="LITRevu, page de connexion">LIT<span>Revu</span><span class="brand-period">.</span></a>
+                <span class="edition-label">Une communauté de lecteurs</span>
+            </header>
+            <div class="editorial-copy">
+                <p class="eyebrow">Lire. Partager. Découvrir.</p>
+                <h2 id="editorial-title">Les mots restent.<br><em>Les regards changent.</em></h2>
+                <p class="editorial-description">Un espace pour les livres qui nous habitent<br class="desktop-break"> et les conversations qu’ils font naître.</p>
+            </div>
+            <div class="editorial-plate">
+                <img class="editorial-image" src="{% static 'accounts/images/reading-editorial.png' %}"
+                     alt="" fetchpriority="high">
+            </div>
+            <div class="editorial-footer" aria-hidden="true">
+                <span>L’art de lire, ensemble.</span>
+                <span class="editorial-rule"></span>
+                <span>1</span>
+            </div>
+        </section>
+        <div class="book-next-page" aria-hidden="true"><span>LITRevu.</span><p>Un nouveau chapitre.</p><span>Votre espace de lecture</span></div>
+        <section class="account-panel" aria-labelledby="page-title">
+            <div class="panel-header"><span>Littérature & regards croisés</span><span class="header-line"></span></div>
+            <div class="account-content">
+                {% block content %}{% endblock %}
+            </div>
+            <footer class="panel-footer"><span>À chaque lecture, un nouveau regard.</span><span>2</span></footer>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <filter id="leather" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".22 .32" numOctaves="3" seed="12" stitchTiles="stitch"/>
+    <feDiffuseLighting surfaceScale="1.3" diffuseConstant=".9" lighting-color="#fff">
+      <feDistantLight azimuth="230" elevation="55"/>
+    </feDiffuseLighting>
+  </filter>
+  <path fill="#999" filter="url(#leather)" d="M0 0h160v160H0z"/>
+</svg>

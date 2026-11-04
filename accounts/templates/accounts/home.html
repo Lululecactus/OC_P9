@@ -1,0 +1,49 @@
+{% extends 'accounts/reader_base.html' %}
+{% block title %}Mon espace — LITRevu{% endblock %}
+{% block content %}
+    <section class="reader-welcome" aria-labelledby="page-title">
+        <div class="reader-welcome-copy">
+            <p class="reader-greeting">Votre espace de lecture</p>
+            <h1 id="page-title" class="handwritten-greeting" aria-label="Bonjour, {{ user.username }}.">
+                <span class="handwritten-line" aria-hidden="true">Bonjour,</span>
+                <span class="handwritten-line reader-name{% if user.username|length > 24 %} long-reader-name{% endif %}" aria-hidden="true">{{ user.username }}.</span>
+            </h1>
+        </div>
+        <div class="reader-introduction">
+            <p class="eyebrow">Le cercle des lecteurs</p>
+            <p>Les livres ouvrent des mondes.<br>Vos regards les agrandissent.</p>
+            <a class="reader-text-link" href="#reading-feed">Retrouver mon fil <span aria-hidden="true">↘</span></a>
+        </div>
+    </section>
+    <div class="reader-columns">
+        <section class="reading-feed" id="reading-feed" aria-labelledby="feed-title">
+            <div class="reader-section-heading">
+                <h2 id="feed-title">Le fil de lecture</h2>
+                <span>Votre communauté, au fil des pages</span>
+            </div>
+            <div class="feed-empty">
+                <span class="empty-ornament" aria-hidden="true">“</span>
+                <div class="empty-copy">
+                    <p class="eyebrow">Tout reste à découvrir</p>
+                    <h3>Une première page<br><em>à écrire ensemble.</em></h3>
+                    <p>Votre fil accueillera les critiques et les demandes de votre communauté de lecteurs.</p>
+                </div>
+                <div class="empty-footnote"><span>Des lectures qui se croisent.</span><span aria-hidden="true">L / R</span></div>
+            </div>
+        </section>
+        <aside class="reader-aside" aria-labelledby="community-title">
+            <div class="margin-note">
+                <p class="eyebrow">En marge</p>
+                <h2 id="community-title">Un livre.<br><em>Des regards.</em></h2>
+                <p>Il y a ce qu’on lit.<br>Et ce qu’on découvre<br>en en parlant.</p>
+                <div class="margin-signature" aria-hidden="true"><span>LITRevu.</span><span>↗</span></div>
+            </div>
+            <p class="aside-caption">Un espace pour la curiosité,<br>la nuance et le plaisir de lire.</p>
+        </aside>
+    </div>
+    <section class="reader-principles" aria-label="L’esprit de la communauté">
+        <div><span aria-hidden="true">01</span><h2>Découvrir</h2><p>Un autre regard sur votre prochaine lecture.</p></div>
+        <div><span aria-hidden="true">02</span><h2>Partager</h2><p>Quelques mots sur ce qui vous a marqué.</p></div>
+        <div><span aria-hidden="true">03</span><h2>Échanger</h2><p>Faire une place aux points de vue différents.</p></div>
+    </section>
+{% endblock %}

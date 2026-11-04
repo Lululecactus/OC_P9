@@ -1,14 +1,15 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Connexion — LITRevu</title>
-</head>
-<body>
-    <main>
-        <h1>Se connecter à LITRevu</h1>
-        <p>Retrouvez les critiques de votre communauté de lecteurs.</p>
-    </main>
-</body>
-</html>
+{% extends 'accounts/base.html' %}
+{% block title %}Connexion — LITRevu{% endblock %}
+{% block content %}
+    <p class="section-label"><span class="section-number">01</span> Votre espace personnel</p>
+    <h1 id="page-title">Le plaisir de<br><em>vous retrouver.</em></h1>
+    <p class="form-intro">Connectez-vous pour poursuivre vos lectures<br class="desktop-break"> et partager vos découvertes.</p>
+    <form method="post" class="account-form" data-book-login>
+        {% csrf_token %}
+        {{ form.as_div }}
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit"><span>Se connecter</span><span class="button-arrow" aria-hidden="true">→</span></button>
+    </form>
+    <p class="login-status" role="status" aria-live="polite"></p>
+    <p class="account-note">Vos lectures. Vos critiques. Votre communauté.</p>
+{% endblock %}

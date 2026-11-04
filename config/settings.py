@@ -124,3 +124,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Utiliser le modèle utilisateur défini dans l'application accounts.
 AUTH_USER_MODEL = 'accounts.User'
+
+# Adresses nommées utilisées par le système d’authentification.
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'accounts:home'
+LOGOUT_REDIRECT_URL = 'accounts:login'
