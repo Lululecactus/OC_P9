@@ -1,15 +1,19 @@
 {% extends 'accounts/base.html' %}
 {% block title %}Connexion — LITRevu{% endblock %}
 {% block content %}
-    <p class="section-label"><span class="section-number">01</span> Votre espace personnel</p>
+    <p class="section-label"><span class="section-number">02</span> Votre espace personnel</p>
     <h1 id="page-title">Le plaisir de<br><em>vous retrouver.</em></h1>
     <p class="form-intro">Connectez-vous pour poursuivre vos lectures<br class="desktop-break"> et partager vos découvertes.</p>
-    <form method="post" class="account-form" data-book-login>
+    {% for message in messages %}
+        <p class="account-feedback" role="status">{{ message }}</p>
+    {% endfor %}
+    {# POST envoie les identifiants ; csrf_token protège contre les requêtes forgées. #}
+    <form method="post" action="{% url 'accounts:login' %}" class="account-form" data-book-login>
         {% csrf_token %}
-        {{ form.as_div }}
+        {% include 'accounts/form_fields.html' %}
         <input type="hidden" name="next" value="{{ next }}">
         <button type="submit"><span>Se connecter</span><span class="button-arrow" aria-hidden="true">→</span></button>
     </form>
     <p class="login-status" role="status" aria-live="polite"></p>
-    <p class="account-note">Vos lectures. Vos critiques. Votre communauté.</p>
+    <p class="account-switch">Pas encore de compte ? <a href="{% url 'accounts:signup' %}" data-book-direction="backward">Créer un compte</a></p>
 {% endblock %}

@@ -1,9 +1,10 @@
 {% extends 'accounts/reader_base.html' %}
 {% block title %}Mon espace — LITRevu{% endblock %}
 {% block content %}
+    {# user est fourni par Django. Son nom est échappé automatiquement dans le HTML. #}
     <section class="reader-welcome" aria-labelledby="page-title">
         <div class="reader-welcome-copy">
-            <p class="reader-greeting">Votre espace de lecture</p>
+            <p class="reader-greeting">Au fil de vos lectures</p>
             <h1 id="page-title" class="handwritten-greeting" aria-label="Bonjour, {{ user.username }}.">
                 <span class="handwritten-line" aria-hidden="true">Bonjour,</span>
                 <span class="handwritten-line reader-name{% if user.username|length > 24 %} long-reader-name{% endif %}" aria-hidden="true">{{ user.username }}.</span>

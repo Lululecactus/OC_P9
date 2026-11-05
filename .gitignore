@@ -13,3 +13,11 @@ tmp/
 
 # Configuration locale pouvant contenir des secrets
 .env
+
+# Clé Django propre à cet ordinateur
+.django-secret-key
+
+# Bases SQLite : fichiers de travail, pas la base livrable
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm

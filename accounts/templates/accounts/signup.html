@@ -1,0 +1,33 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block title %}Inscription — LITRevu{% endblock %}
+{% block page_class %}signup-page{% endblock %}
+{% block left_page_number %}1{% endblock %}
+{% block right_page_number %}2{% endblock %}
+{% block editorial_copy %}
+    <p class="eyebrow">Un livre. Plusieurs regards.</p>
+    <h2 id="editorial-title">Vos lectures ont<br><em>de la compagnie.</em></h2>
+    <p class="editorial-description">Un passage vous touche. Une fin vous surprend.<br class="desktop-break"> Ici, la conversation continue après la dernière page.</p>
+{% endblock %}
+{% block editorial_art %}
+    <figure class="reading-invitation">
+        <img src="{% static 'accounts/images/first-page-editorial.png' %}" alt="" width="1536" height="1024">
+        <figcaption>
+            <span class="invitation-caption">Tout commence par quelques mots.</span>
+            <blockquote>« Longtemps, je me suis couché de bonne heure. »</blockquote>
+            <p class="invitation-source">Marcel Proust · <cite>Du côté de chez Swann</cite>, 1913<br>Première phrase du roman.</p>
+        </figcaption>
+    </figure>
+{% endblock %}
+{% block content %}
+    <h1 id="page-title">Une nouvelle<br><em>page commence.</em></h1>
+    <p class="form-intro">Créez votre compte pour rejoindre les lecteurs.</p>
+    {# Le formulaire est construit et validé en Python, puis affiché ici en HTML. #}
+    <form method="post" action="{% url 'accounts:signup' %}" class="account-form" data-book-signup>
+        {% csrf_token %}
+        {% include 'accounts/form_fields.html' %}
+        <button type="submit"><span>Créer mon compte</span><span class="button-arrow" aria-hidden="true">→</span></button>
+    </form>
+    <p class="login-status" role="status" aria-live="polite"></p>
+    <p class="account-switch">Déjà un compte ? <a href="{% url 'accounts:login' %}" data-book-direction="forward">Se connecter</a></p>
+{% endblock %}

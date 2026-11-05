@@ -6,11 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Mon espace — LITRevu{% endblock %}</title>
     <link rel="preload" href="{% static 'accounts/fonts/Allura-Regular.ttf' %}" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="{% static 'accounts/style.css' %}?v=20261104-2">
+    <link rel="stylesheet" href="{% static 'accounts/style.css' %}?v=20261104-9">
     <script src="{% static 'accounts/reader-entry.js' %}"></script>
 </head>
 <body class="reader-page">
     <a class="skip-link" href="#main-content">Aller au contenu principal</a>
+    {# Mise en page commune de l’espace connecté ; le contenu vient du template enfant. #}
+    <div class="reader-folio">
+    <div class="folio-mark" aria-hidden="true"><span>07</span><span>Le cercle des lecteurs</span></div>
     <header class="reader-header">
         <div class="reader-wordmark">
             <a class="brand" href="{% url 'accounts:home' %}" aria-label="LITRevu, accueil">LIT<span>Revu</span><span class="brand-period">.</span></a>
@@ -29,5 +32,6 @@
         {% block content %}{% endblock %}
     </main>
     <footer class="reader-footer"><span class="footer-wordmark">LITRevu.</span><span>À chaque lecture, un nouveau regard.</span><a href="#main-content">Haut de page <span aria-hidden="true">↑</span></a></footer>
+    </div>
 </body>
 </html>

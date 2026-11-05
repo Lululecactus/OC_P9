@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,8 +22,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r0*y*%hu=2f)essyhq82rtu4=o_n$s(cm9*@z*l@o!2vz(#0ju'
+# Une clé propre à l’ordinateur, jamais enregistrée dans Git.
+# Une variable d’environnement peut remplacer cette clé locale.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    secret_file = BASE_DIR / '.django-secret-key'
+    if not secret_file.exists():
+        secret_file.write_text(get_random_secret_key(), encoding='utf-8')
+        secret_file.chmod(0o600)
+    SECRET_KEY = secret_file.read_text(encoding='utf-8').strip()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -30,6 +40,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+# Applications que Django doit charger au démarrage.
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,6 +51,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
 ]
 
+# Ces composants traitent les requêtes : sessions, sécurité, utilisateur connecté…
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -73,6 +85,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# SQLite stocke les données dans un fichier local : db.sqlite3.
+# Les modèles Python y accèdent grâce à l’ORM de Django.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -84,6 +98,7 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
+# Règles vérifiées lors de la création d’un mot de passe.
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

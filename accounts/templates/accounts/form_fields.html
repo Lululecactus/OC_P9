@@ -1,0 +1,30 @@
+{# Les erreurs générales sont suivies des champs et de leurs erreurs individuelles. #}
+{{ form.non_field_errors }}
+{% for field in form %}
+    <div class="form-field">
+        {{ field.label_tag }}
+        {{ field.errors }}
+        {% if field.widget_type == 'password' %}
+            <div class="password-control">
+                {{ field }}
+                <button type="button" class="password-toggle" hidden
+                        aria-controls="{{ field.id_for_label }}"
+                        aria-label="Afficher le mot de passe — {{ field.label }}">
+                    Afficher
+                </button>
+            </div>
+        {% else %}
+            {{ field }}
+        {% endif %}
+        {% if field.help_text %}
+            {% if field.name == 'password1' %}
+                <details class="password-help">
+                    <summary>Conseils pour le mot de passe</summary>
+                    <div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>
+                </details>
+            {% else %}
+                <div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endfor %}
