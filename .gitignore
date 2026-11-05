@@ -21,3 +21,6 @@ tmp/
 *.sqlite3-journal
 *.sqlite3-wal
 *.sqlite3-shm
+
+# Images envoyées localement (les médias de démonstration seront choisis à la livraison)
+media/
