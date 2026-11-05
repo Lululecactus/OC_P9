@@ -7,10 +7,11 @@ from PIL import Image
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Review, Ticket
+from .models import Review, Ticket, UserFollows
 
 
 class TicketTests(TestCase):
@@ -92,6 +93,37 @@ class ReviewTests(TestCase):
         self.ticket.delete()
         self.assertFalse(Review.objects.filter(pk=review.pk).exists())
         self.assertTrue(get_user_model().objects.filter(pk=self.reviewer.pk).exists())
+
+
+class UserFollowsTests(TestCase):
+    """Vérifie le sens des abonnements et l’absence de doublons."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.alice = get_user_model().objects.create_user(username='alice')
+        cls.bob = get_user_model().objects.create_user(username='bob')
+
+    def test_follow_is_directional_and_reverse_follow_is_allowed(self):
+        follow = UserFollows.objects.create(user=self.alice, followed_user=self.bob)
+        # Ces relations renvoient des abonnements, pas directement des utilisateurs.
+        self.assertEqual(self.alice.following.get(), follow)
+        self.assertEqual(self.bob.followed_by.get(), follow)
+        self.assertFalse(self.bob.following.exists())
+        UserFollows.objects.create(user=self.bob, followed_user=self.alice)
+        self.assertEqual(UserFollows.objects.count(), 2)
+
+    def test_database_rejects_duplicate_follow(self):
+        UserFollows.objects.create(user=self.alice, followed_user=self.bob)
+        # Le bloc transactionnel isole l’erreur attendue pendant ce test.
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            UserFollows.objects.create(user=self.alice, followed_user=self.bob)
+
+    def test_deleting_user_removes_both_incoming_and_outgoing_follows(self):
+        UserFollows.objects.create(user=self.alice, followed_user=self.bob)
+        UserFollows.objects.create(user=self.bob, followed_user=self.alice)
+        self.alice.delete()
+        self.assertFalse(UserFollows.objects.exists())
+        self.assertTrue(get_user_model().objects.filter(pk=self.bob.pk).exists())
 
 
 class TicketAdminTests(TestCase):

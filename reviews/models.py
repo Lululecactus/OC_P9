@@ -45,3 +45,26 @@ class Review(models.Model):
     def __str__(self):
         """Affiche le titre de la critique plutôt qu’un numéro d’objet."""
         return self.headline
+
+
+class UserFollows(models.Model):
+    """Abonnement d’un lecteur aux publications d’un autre lecteur."""
+
+    user = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='following',
+    )
+    followed_user = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='followed_by',
+    )
+
+    class Meta:
+        # Une même personne ne peut pas suivre deux fois le même lecteur.
+        unique_together = ('user', 'followed_user')
+
+    def __str__(self):
+        """Indique le sens de l’abonnement, notamment dans l’administration."""
+        return f'{self.user} suit {self.followed_user}'
