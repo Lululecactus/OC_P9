@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts.apps.AccountsConfig',
+    'reviews.apps.ReviewsConfig',
 ]
 
 # Ces composants traitent les requêtes : sessions, sécurité, utilisateur connecté…
