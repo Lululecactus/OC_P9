@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Ticket
+from .models import Review, Ticket
 
 
 class TicketTests(TestCase):
@@ -47,6 +47,51 @@ class TicketTests(TestCase):
         ticket = Ticket.objects.create(title='Une demande', user=self.user)
         self.user.delete()
         self.assertFalse(Ticket.objects.filter(pk=ticket.pk).exists())
+
+
+class ReviewTests(TestCase):
+    """Vérifie la note et les relations entre une critique, son auteur et son billet."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Prépare un billet et une autre personne pour y répondre."""
+        cls.author = get_user_model().objects.create_user(username='auteur_billet')
+        cls.reviewer = get_user_model().objects.create_user(username='critique_lecteur')
+        cls.ticket = Ticket.objects.create(title='Un livre à découvrir', user=cls.author)
+
+    def test_review_accepts_both_rating_limits_and_optional_body(self):
+        for rating in (0, 5):
+            with self.subTest(rating=rating):
+                review = Review(
+                    ticket=self.ticket, user=self.reviewer,
+                    rating=rating, headline='Mon avis',
+                )
+                review.full_clean()
+                review.save()
+                review.refresh_from_db()
+                self.assertEqual(review.ticket, self.ticket)
+                self.assertEqual(review.user, self.reviewer)
+                self.assertEqual(review.body, '')
+                self.assertIsNotNone(review.time_created)
+
+    def test_validation_rejects_rating_outside_zero_to_five(self):
+        for rating in (-1, 6):
+            with self.subTest(rating=rating):
+                review = Review(
+                    ticket=self.ticket, user=self.reviewer,
+                    rating=rating, headline='Mon avis',
+                )
+                with self.assertRaises(ValidationError) as error:
+                    review.full_clean()
+                self.assertIn('rating', error.exception.message_dict)
+
+    def test_deleting_ticket_deletes_review_but_keeps_its_author(self):
+        review = Review.objects.create(
+            ticket=self.ticket, user=self.reviewer, rating=4, headline='Mon avis',
+        )
+        self.ticket.delete()
+        self.assertFalse(Review.objects.filter(pk=review.pk).exists())
+        self.assertTrue(get_user_model().objects.filter(pk=self.reviewer.pk).exists())
 
 
 class TicketAdminTests(TestCase):
