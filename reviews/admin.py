@@ -1,8 +1,8 @@
-"""Gestion des billets et des critiques depuis l’administration Django."""
+"""Gestion des publications et des abonnements dans l’administration Django."""
 
 from django.contrib import admin
 
-from .models import Review, Ticket
+from .models import Review, Ticket, UserFollows
 
 
 @admin.register(Ticket)
@@ -21,3 +21,11 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ('headline', 'ticket', 'user', 'rating', 'time_created')
     search_fields = ('headline', 'ticket__title', 'user__username')
     readonly_fields = ('time_created',)
+
+
+@admin.register(UserFollows)
+class UserFollowsAdmin(admin.ModelAdmin):
+    """Affiche qui suit qui et permet de rechercher les deux lecteurs."""
+
+    list_display = ('user', 'followed_user')
+    search_fields = ('user__username', 'followed_user__username')
