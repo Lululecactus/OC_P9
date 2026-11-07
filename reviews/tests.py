@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from .models import Review, Ticket, UserFollows
@@ -79,6 +79,36 @@ class TicketEditTests(TestCase):
         self.assertEqual(self.client.post(self.url, {'title': 'Autre titre'}).status_code, 404)
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.title, 'Dune')
+
+
+class TicketDeleteTests(TestCase):
+    """Vérifie le parcours de confirmation et la protection du billet."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.author = get_user_model().objects.create_user(username='alice')
+        cls.other = get_user_model().objects.create_user(username='bob')
+        cls.ticket = Ticket.objects.create(title='Dune', user=cls.author)
+        cls.url = reverse('reviews:ticket_delete', args=[cls.ticket.pk])
+
+    def test_owner_confirms_deletion_with_csrf(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.author)
+        self.assertContains(client.get(reverse('accounts:home')), self.url)
+        self.assertContains(client.get(self.url), 'Supprimer « Dune »')
+        self.assertEqual(client.post(self.url).status_code, 403)
+        self.assertTrue(Ticket.objects.filter(pk=self.ticket.pk).exists())
+        response = client.post(self.url, {'csrfmiddlewaretoken': client.cookies['csrftoken'].value})
+        self.assertRedirects(response, reverse('accounts:home'))
+        self.assertFalse(Ticket.objects.filter(pk=self.ticket.pk).exists())
+
+    def test_only_owner_can_access_confirmation_or_delete(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, f"{reverse('accounts:login')}?next={self.url}")
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(self.client.post(self.url).status_code, 404)
+        self.assertTrue(Ticket.objects.filter(pk=self.ticket.pk).exists())
 
 
 class TicketTests(TestCase):

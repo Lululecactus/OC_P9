@@ -31,6 +31,7 @@
                 {% for ticket in my_tickets %}
                     <li>
                         <a class="reader-text-link" href="{% url 'reviews:ticket_edit' ticket.pk %}">Modifier « {{ ticket.title }} »</a>
+                        <a class="reader-text-link" href="{% url 'reviews:ticket_delete' ticket.pk %}" aria-label="Supprimer « {{ ticket.title }} »">Supprimer</a>
                     </li>
                 {% endfor %}
             </ul>

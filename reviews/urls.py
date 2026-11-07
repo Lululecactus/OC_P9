@@ -9,4 +9,5 @@ app_name = 'reviews'
 urlpatterns = [
     path('billets/nouveau/', views.ticket_form, name='ticket_create'),
     path('billets/<int:pk>/modifier/', views.ticket_form, name='ticket_edit'),
+    path('billets/<int:pk>/supprimer/', views.ticket_delete, name='ticket_delete'),
 ]
