@@ -2,23 +2,29 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import TicketForm
+from .models import Ticket
 
 
 @login_required
-def ticket_create(request):
-    """Affiche la demande de critique et l’enregistre au nom du lecteur."""
+def ticket_form(request, pk=None):
+    """Crée une demande ou modifie celle du lecteur connecté."""
+    if pk is None:
+        ticket = Ticket(user=request.user)
+    else:
+        ticket = get_object_or_404(Ticket, pk=pk, user=request.user)
+
     if request.method == 'POST':
-        form = TicketForm(request.POST, request.FILES)
+        form = TicketForm(request.POST, request.FILES, instance=ticket)
         if form.is_valid():
-            # On complète le billet avec son auteur avant de l’écrire en base.
-            ticket = form.save(commit=False)
-            ticket.user = request.user
-            ticket.save()
-            messages.success(request, 'Votre demande de critique a été publiée.')
+            form.save()
+            if pk is None:
+                messages.success(request, 'Votre demande de critique a été publiée.')
+            else:
+                messages.success(request, 'Votre demande de critique a été modifiée.')
             return redirect('accounts:home')
     else:
-        form = TicketForm()
-    return render(request, 'reviews/ticket_create.html', {'form': form})
+        form = TicketForm(instance=ticket)
+    return render(request, 'reviews/ticket_form.html', {'form': form})

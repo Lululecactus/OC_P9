@@ -25,6 +25,16 @@
                 <h2 id="feed-title">Le fil de lecture</h2>
                 <a class="reader-text-link" href="{% url 'reviews:ticket_create' %}">Demander une critique</a>
             </div>
+            {% if my_tickets %}
+            <h3>Mes demandes de critique</h3>
+            <ul>
+                {% for ticket in my_tickets %}
+                    <li>
+                        <a class="reader-text-link" href="{% url 'reviews:ticket_edit' ticket.pk %}">Modifier « {{ ticket.title }} »</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% else %}
             <div class="feed-empty">
                 <span class="empty-ornament" aria-hidden="true">“</span>
                 <div class="empty-copy">
@@ -34,6 +44,7 @@
                 </div>
                 <div class="empty-footnote"><span>Des lectures qui se croisent.</span><span aria-hidden="true">L / R</span></div>
             </div>
+            {% endif %}
         </section>
         <aside class="reader-aside" aria-labelledby="community-title">
             <div class="margin-note">

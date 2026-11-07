@@ -37,4 +37,5 @@ def signup(request):
 @login_required
 def home(request):
     """Affiche un accueil réservé aux utilisateurs connectés."""
-    return render(request, 'accounts/home.html')
+    tickets = request.user.ticket_set.order_by('-time_created', '-pk')
+    return render(request, 'accounts/home.html', {'my_tickets': tickets})

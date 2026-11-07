@@ -51,6 +51,36 @@ class TicketCreateTests(TestCase):
             self.assertTrue(ticket.image.storage.exists(ticket.image.name))
 
 
+class TicketEditTests(TestCase):
+    """Seul l’auteur peut ouvrir le billet et enregistrer sa correction."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.author = get_user_model().objects.create_user(username='alice')
+        cls.other = get_user_model().objects.create_user(username='bob')
+        cls.ticket = Ticket.objects.create(title='Dune', user=cls.author)
+        cls.url = reverse('reviews:ticket_edit', args=[cls.ticket.pk])
+
+    def test_author_edits_existing_ticket_from_home(self):
+        self.client.force_login(self.author)
+        self.assertContains(self.client.get(reverse('accounts:home')), self.url)
+        self.assertContains(self.client.get(self.url), 'value="Dune"')
+        response = self.client.post(self.url, {'title': 'Le Messie de Dune', 'user': self.other.pk})
+        self.assertRedirects(response, reverse('accounts:home'))
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.title, 'Le Messie de Dune')
+        self.assertEqual(self.ticket.user, self.author)
+        self.assertEqual(Ticket.objects.count(), 1)
+
+    def test_other_reader_cannot_view_or_update_ticket(self):
+        self.client.force_login(self.other)
+        self.assertNotContains(self.client.get(reverse('accounts:home')), self.url)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(self.client.post(self.url, {'title': 'Autre titre'}).status_code, 404)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.title, 'Dune')
+
+
 class TicketTests(TestCase):
     """Vérifie la création d’un billet et son lien avec son auteur."""
 
