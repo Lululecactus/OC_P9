@@ -1,6 +1,9 @@
 {% extends 'accounts/reader_base.html' %}
 {% block title %}Mon espace — LITRevu{% endblock %}
 {% block content %}
+    {% for message in messages %}
+        <p class="account-feedback" role="status">{{ message }}</p>
+    {% endfor %}
     {# user est fourni par Django. Son nom est échappé automatiquement dans le HTML. #}
     <section class="reader-welcome" aria-labelledby="page-title">
         <div class="reader-welcome-copy">
@@ -20,7 +23,7 @@
         <section class="reading-feed" id="reading-feed" aria-labelledby="feed-title">
             <div class="reader-section-heading">
                 <h2 id="feed-title">Le fil de lecture</h2>
-                <span>Votre communauté, au fil des pages</span>
+                <a class="reader-text-link" href="{% url 'reviews:ticket_create' %}">Demander une critique</a>
             </div>
             <div class="feed-empty">
                 <span class="empty-ornament" aria-hidden="true">“</span>

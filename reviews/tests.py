@@ -14,6 +14,43 @@ from django.urls import reverse
 from .models import Review, Ticket, UserFollows
 
 
+class TicketCreateTests(TestCase):
+    """Vérifie la publication depuis l’espace lecteur."""
+
+    def test_anonymous_post_requires_login(self):
+        url = reverse('reviews:ticket_create')
+        response = self.client.post(url, {'title': 'Une demande'})
+        self.assertRedirects(response, f"{reverse('accounts:login')}?next={url}")
+        self.assertFalse(Ticket.objects.exists())
+
+    def test_invalid_title_redisplays_form_without_saving(self):
+        reader = get_user_model().objects.create_user(username='alice')
+        self.client.force_login(reader)
+        url = reverse('reviews:ticket_create')
+        self.assertContains(self.client.get(url), 'multipart/form-data')
+        response = self.client.post(url, {'description': 'Mon passage préféré'})
+        self.assertContains(response, 'Mon passage préféré')
+        self.assertIn('title', response.context['form'].errors)
+        self.assertFalse(Ticket.objects.exists())
+
+    def test_uploaded_image_and_author_come_from_authenticated_request(self):
+        reader = get_user_model().objects.create_user(username='alice')
+        other = get_user_model().objects.create_user(username='bob')
+        self.client.force_login(reader)
+        data = BytesIO()
+        Image.new('RGB', (2, 2)).save(data, format='PNG')
+        image = SimpleUploadedFile('couverture.png', data.getvalue(), content_type='image/png')
+        with TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
+            response = self.client.post(reverse('reviews:ticket_create'), {
+                'title': 'Dune', 'user': other.pk, 'image': image,
+            }, follow=True)
+            self.assertRedirects(response, reverse('accounts:home'))
+            self.assertContains(response, 'Votre demande de critique a été publiée.')
+            ticket = Ticket.objects.get()
+            self.assertEqual(ticket.user, reader)
+            self.assertTrue(ticket.image.storage.exists(ticket.image.name))
+
+
 class TicketTests(TestCase):
     """Vérifie la création d’un billet et son lien avec son auteur."""
 

@@ -22,6 +22,7 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
+    path('', include('reviews.urls')),
 ]
 
 # En développement uniquement, Django sert les images envoyées sur le site.

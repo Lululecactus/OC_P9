@@ -1,0 +1,13 @@
+{% extends 'accounts/reader_base.html' %}
+{% block title %}Demander une critique — LITRevu{% endblock %}
+{% block content %}
+    <section class="ticket-editor" aria-labelledby="page-title">
+        <h1 id="page-title">Demander une critique</h1>
+        <form method="post" enctype="multipart/form-data" class="account-form">
+            {% csrf_token %}
+            {% include 'accounts/form_fields.html' %}
+            <button type="submit">Publier ma demande</button>
+        </form>
+        <a class="reader-text-link" href="{% url 'accounts:home' %}">Annuler et revenir à mon espace</a>
+    </section>
+{% endblock %}

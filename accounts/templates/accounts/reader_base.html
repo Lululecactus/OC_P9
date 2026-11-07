@@ -20,8 +20,8 @@
             <span class="reader-brand-caption">La lecture en partage</span>
         </div>
         <nav class="reader-nav" aria-label="Navigation principale">
-            <a href="{% url 'accounts:home' %}" aria-current="page">Mon espace</a>
-            <a href="#reading-feed">Mon fil de lecture</a>
+            <a href="{% url 'accounts:home' %}"{% if request.resolver_match.view_name == 'accounts:home' %} aria-current="page"{% endif %}>Mon espace</a>
+            <a href="{% url 'accounts:home' %}#reading-feed">Mon fil de lecture</a>
         </nav>
         <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
             {% csrf_token %}

@@ -1414,6 +1414,27 @@ button:disabled {
   max-width: 1160px;
   margin: 0 auto;
 }
+.ticket-editor {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 5vw, 4rem) 0;
+}
+.ticket-editor h1 {
+  margin-bottom: 1.5rem;
+  font: normal clamp(2rem, 5vw, 3rem) var(--serif);
+}
+.ticket-editor textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #95968c;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+.ticket-editor .reader-text-link {
+  margin-top: 1.25rem;
+}
 .reader-welcome {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 310px;
