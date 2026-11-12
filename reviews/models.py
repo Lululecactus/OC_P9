@@ -21,6 +21,12 @@ class Ticket(models.Model):
     # Django renseigne cette date lors du premier enregistrement.
     time_created = models.DateTimeField(auto_now_add=True)
 
+    @classmethod
+    def visible_to(cls, reader):
+        """Retrouve les demandes du lecteur et celles des personnes qu’il suit."""
+        followed_ids = reader.following.values_list('followed_user_id', flat=True)
+        return cls.objects.filter(models.Q(user=reader) | models.Q(user_id__in=followed_ids))
+
     def __str__(self):
         """Représente le billet par son titre, notamment dans l’administration."""
         return self.title
@@ -45,6 +51,14 @@ class Review(models.Model):
     def __str__(self):
         """Affiche le titre de la critique plutôt qu’un numéro d’objet."""
         return self.headline
+
+    @classmethod
+    def visible_to(cls, reader):
+        """Inclut aussi les réponses aux billets du lecteur, quel que soit leur auteur."""
+        followed_ids = reader.following.values_list('followed_user_id', flat=True)
+        return cls.objects.filter(
+            models.Q(user=reader) | models.Q(user_id__in=followed_ids) | models.Q(ticket__user=reader)
+        )
 
 
 class UserFollows(models.Model):

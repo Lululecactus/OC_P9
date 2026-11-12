@@ -1435,6 +1435,75 @@ button:disabled {
 .ticket-editor .reader-text-link {
   margin-top: 1.25rem;
 }
+.review-cover {
+  max-width: 100%;
+  max-height: 12rem;
+}
+.ticket-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ticket-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(1rem, 3vw, 2rem);
+  border-top: 1px solid var(--line);
+  padding: 1.5rem 0;
+}
+.ticket-cover {
+  width: min(25%, 8rem);
+  height: auto;
+  max-height: 12rem;
+  object-fit: contain;
+  object-position: top left;
+}
+.ticket-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.ticket-copy h3 {
+  margin: 0;
+  font: normal 1.5rem/1.2 var(--serif);
+}
+.ticket-byline {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin: 0.4rem 0;
+}
+.ticket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+}
+.review-form {
+  margin-top: 2rem;
+}
+.review-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.review-form fieldset > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.review-form fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding-right: 0.5rem;
+}
+.review-form input[type="radio"] {
+  width: 1.1rem;
+  min-height: 0;
+  height: 1.1rem;
+  padding: 0;
+  accent-color: var(--accent);
+}
 .reader-welcome {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 310px;

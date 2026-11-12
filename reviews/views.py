@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import TicketForm
-from .models import Ticket
+from .forms import ReviewForm, TicketForm
+from .models import Review, Ticket
 
 
 @login_required
@@ -41,3 +41,20 @@ def ticket_delete(request, pk):
         messages.success(request, 'Votre demande de critique a été supprimée.')
         return redirect('accounts:home')
     return render(request, 'reviews/ticket_confirm_delete.html', {'ticket': ticket})
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def review_create(request, ticket_pk):
+    """Publie une critique en réponse au billet ouvert par le lecteur."""
+    ticket = get_object_or_404(Ticket.visible_to(request.user), pk=ticket_pk)
+    if request.method == 'POST':
+        review = Review(ticket=ticket, user=request.user)
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Votre critique a été publiée.')
+            return redirect('accounts:home')
+    else:
+        form = ReviewForm()
+    return render(request, 'reviews/review_form.html', {'ticket': ticket, 'form': form})

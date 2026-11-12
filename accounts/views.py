@@ -1,8 +1,12 @@
 """Vues des pages de gestion des comptes."""
 
+from itertools import chain
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+
+from reviews.models import Review, Ticket
 
 from .forms import SignupForm
 
@@ -37,5 +41,8 @@ def signup(request):
 @login_required
 def home(request):
     """Affiche un accueil réservé aux utilisateurs connectés."""
-    tickets = request.user.ticket_set.order_by('-time_created', '-pk')
-    return render(request, 'accounts/home.html', {'my_tickets': tickets})
+    tickets = Ticket.visible_to(request.user).select_related('user')
+    reviews = Review.visible_to(request.user).select_related('user', 'ticket')
+    # On trie les deux types de publication ensemble pour afficher la plus récente en premier.
+    posts = sorted(chain(tickets, reviews), key=lambda post: (post.time_created, post.pk), reverse=True)
+    return render(request, 'accounts/home.html', {'posts': posts})

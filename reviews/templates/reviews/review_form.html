@@ -1,0 +1,17 @@
+{% extends 'accounts/reader_base.html' %}
+{% block title %}Écrire une critique — LITRevu{% endblock %}
+{% block content %}
+    <section class="ticket-editor" aria-labelledby="page-title">
+        <h1 id="page-title">Écrire une critique</h1>
+        <h2>{{ ticket.title }}</h2>
+        <p>Demande de {{ ticket.user.username }}</p>
+        {% if ticket.description %}{{ ticket.description|linebreaks }}{% endif %}
+        {% if ticket.image %}<img class="review-cover" src="{{ ticket.image.url }}" alt="Image jointe à la demande « {{ ticket.title }} »">{% endif %}
+        <form method="post" class="account-form review-form">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <button type="submit">Publier ma critique</button>
+        </form>
+        <a class="reader-text-link" href="{% url 'accounts:home' %}">Annuler et revenir à mon espace</a>
+    </section>
+{% endblock %}

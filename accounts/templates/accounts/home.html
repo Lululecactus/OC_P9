@@ -25,14 +25,43 @@
                 <h2 id="feed-title">Le fil de lecture</h2>
                 <a class="reader-text-link" href="{% url 'reviews:ticket_create' %}">Demander une critique</a>
             </div>
-            {% if my_tickets %}
-            <h3>Mes demandes de critique</h3>
-            <ul>
-                {% for ticket in my_tickets %}
-                    <li>
-                        <a class="reader-text-link" href="{% url 'reviews:ticket_edit' ticket.pk %}">Modifier « {{ ticket.title }} »</a>
-                        <a class="reader-text-link" href="{% url 'reviews:ticket_delete' ticket.pk %}" aria-label="Supprimer « {{ ticket.title }} »">Supprimer</a>
+            {% if posts %}
+            <ul class="ticket-list">
+                {% for post in posts %}
+                    {% if post.ticket_id %}
+                    <li class="ticket-entry">
+                        {% if post.ticket.image %}
+                            <img class="ticket-cover" src="{{ post.ticket.image.url }}" alt="Illustration de la demande « {{ post.ticket.title }} »">
+                        {% endif %}
+                        <div class="ticket-copy">
+                            <p class="ticket-byline">Critique en réponse à « {{ post.ticket.title }} »</p>
+                            <h3>{{ post.headline }}</h3>
+                            <p><strong>{{ post.rating }} / 5</strong> · {{ post.user.username }} · <time datetime="{{ post.time_created|date:'c' }}">{{ post.time_created|date:'j F Y' }}</time></p>
+                            {% if post.body %}{{ post.body|linebreaks }}{% endif %}
+                        </div>
                     </li>
+                    {% else %}
+                    {% with ticket=post %}
+                    <li class="ticket-entry">
+                        {% if ticket.image %}
+                            <img class="ticket-cover" src="{{ ticket.image.url }}" alt="Illustration de la demande « {{ ticket.title }} »">
+                        {% endif %}
+                        <div class="ticket-copy">
+                            <p class="ticket-byline">Demande de critique</p>
+                            <h3>{{ ticket.title }}</h3>
+                            <p class="ticket-byline">{{ ticket.user.username }} · <time datetime="{{ ticket.time_created|date:'c' }}">{{ ticket.time_created|date:'j F Y' }}</time></p>
+                            {% if ticket.description %}{{ ticket.description|linebreaks }}{% endif %}
+                            <div class="ticket-actions">
+                                <a class="reader-text-link" href="{% url 'reviews:review_create' ticket.pk %}" aria-label="Écrire une critique pour « {{ ticket.title }} »">Écrire une critique</a>
+                                {% if ticket.user_id == user.pk %}
+                                    <a class="reader-text-link" href="{% url 'reviews:ticket_edit' ticket.pk %}" aria-label="Modifier « {{ ticket.title }} »">Modifier</a>
+                                    <a class="reader-text-link" href="{% url 'reviews:ticket_delete' ticket.pk %}" aria-label="Supprimer « {{ ticket.title }} »">Supprimer</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    {% endwith %}
+                    {% endif %}
                 {% endfor %}
             </ul>
             {% else %}

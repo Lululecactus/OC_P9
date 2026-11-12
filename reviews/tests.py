@@ -14,6 +14,56 @@ from django.urls import reverse
 from .models import Review, Ticket, UserFollows
 
 
+class ReviewCreateTests(TestCase):
+    """Vérifie la réponse à un billet et les droits du lecteur."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.alice = get_user_model().objects.create_user(username='alice')
+        cls.bob = get_user_model().objects.create_user(username='bob')
+        cls.ticket = Ticket.objects.create(title='Dune', user=cls.alice)
+        cls.url = reverse('reviews:review_create', args=[cls.ticket.pk])
+
+    def test_follower_can_reply_as_themselves_to_selected_ticket(self):
+        UserFollows.objects.create(user=self.bob, followed_user=self.alice)
+        other_ticket = Ticket.objects.create(title='Fondation', user=self.bob)
+        self.client.force_login(self.bob)
+        self.assertContains(self.client.get(reverse('accounts:home')), self.url)
+        self.assertContains(self.client.get(self.url), 'Dune')
+        response = self.client.post(self.url, {
+            'headline': 'Mon avis', 'rating': '0', 'body': 'Mon commentaire sur Dune.',
+            'ticket': other_ticket.pk, 'user': self.alice.pk,
+        }, follow=True)
+        self.assertRedirects(response, reverse('accounts:home'))
+        self.assertContains(response, 'Mon avis')
+        self.assertContains(response, '0 / 5')
+        self.assertContains(response, 'Mon commentaire sur Dune.')
+        self.client.force_login(self.alice)
+        self.assertContains(self.client.get(reverse('accounts:home')), 'Mon avis')
+        stranger = get_user_model().objects.create_user(username='charlie')
+        self.client.force_login(stranger)
+        self.assertNotContains(self.client.get(reverse('accounts:home')), 'Mon avis')
+        review = Review.objects.get()
+        self.assertEqual((review.ticket, review.user, review.rating), (self.ticket, self.bob, 0))
+
+    def test_anonymous_and_unrelated_readers_cannot_reply(self):
+        data = {'headline': 'Mon avis', 'rating': '4'}
+        self.assertRedirects(self.client.post(self.url, data), f"{reverse('accounts:login')}?next={self.url}")
+        self.client.force_login(self.bob)
+        self.assertNotContains(self.client.get(reverse('accounts:home')), self.url)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+        self.assertEqual(self.client.post(self.url, data).status_code, 404)
+        self.assertFalse(Review.objects.exists())
+
+    def test_invalid_rating_keeps_form_and_ticket_context(self):
+        self.client.force_login(self.alice)
+        response = self.client.post(self.url, {'headline': 'Mon avis', 'rating': '6'})
+        self.assertIn('rating', response.context['form'].errors)
+        self.assertContains(response, 'Mon avis')
+        self.assertContains(response, 'Dune')
+        self.assertFalse(Review.objects.exists())
+
+
 class TicketCreateTests(TestCase):
     """Vérifie la publication depuis l’espace lecteur."""
 
@@ -42,13 +92,17 @@ class TicketCreateTests(TestCase):
         image = SimpleUploadedFile('couverture.png', data.getvalue(), content_type='image/png')
         with TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
             response = self.client.post(reverse('reviews:ticket_create'), {
-                'title': 'Dune', 'user': other.pk, 'image': image,
+                'title': 'Dune', 'description': 'Un avis sur le premier tome ?',
+                'user': other.pk, 'image': image,
             }, follow=True)
             self.assertRedirects(response, reverse('accounts:home'))
             self.assertContains(response, 'Votre demande de critique a été publiée.')
             ticket = Ticket.objects.get()
             self.assertEqual(ticket.user, reader)
             self.assertTrue(ticket.image.storage.exists(ticket.image.name))
+            self.assertContains(response, f'src="{ticket.image.url}"')
+            self.assertContains(response, 'Un avis sur le premier tome ?')
+            self.assertContains(response, reverse('reviews:review_create', args=[ticket.pk]))
 
 
 class TicketEditTests(TestCase):
