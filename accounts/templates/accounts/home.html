@@ -23,7 +23,10 @@
         <section class="reading-feed" id="reading-feed" aria-labelledby="feed-title">
             <div class="reader-section-heading">
                 <h2 id="feed-title">Le fil de lecture</h2>
-                <a class="reader-text-link" href="{% url 'reviews:ticket_create' %}">Demander une critique</a>
+                <div class="ticket-actions">
+                    <a class="reader-text-link" href="{% url 'reviews:ticket_create' %}">Demander une critique</a>
+                    <a class="reader-text-link" href="{% url 'reviews:review_create_with_ticket' %}">Créer une critique</a>
+                </div>
             </div>
             {% if posts %}
             <ul class="ticket-list">

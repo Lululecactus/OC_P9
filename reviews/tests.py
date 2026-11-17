@@ -2,6 +2,7 @@
 
 from io import BytesIO
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from PIL import Image
 from django.contrib.auth import get_user_model
@@ -12,6 +13,93 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from .models import Review, Ticket, UserFollows
+
+
+class ReviewWithTicketCreateTests(TestCase):
+    """Vérifie la publication simultanée d’un billet et de sa critique."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.reader = get_user_model().objects.create_user(username='lectrice')
+        cls.url = reverse('reviews:review_create_with_ticket')
+
+    def test_form_is_linked_from_feed_and_accepts_images(self):
+        self.client.force_login(self.reader)
+        self.assertContains(self.client.get(reverse('accounts:home')), self.url)
+        response = self.client.get(self.url)
+        self.assertContains(response, 'multipart/form-data')
+        self.assertContains(response, 'name="title"')
+        self.assertContains(response, 'name="rating"')
+        self.assertFalse(Ticket.objects.exists())
+
+    def test_publication_saves_image_and_links_both_records_to_reader(self):
+        self.client.force_login(self.reader)
+        other = get_user_model().objects.create_user(username='autre')
+        existing = Ticket.objects.create(title='Autre billet', user=other)
+        data = BytesIO()
+        Image.new('RGB', (2, 2)).save(data, format='PNG')
+        upload = SimpleUploadedFile('livre.png', data.getvalue(), content_type='image/png')
+        with TemporaryDirectory() as directory, override_settings(MEDIA_ROOT=directory):
+            response = self.client.post(self.url, {
+                'title': 'Dune', 'description': 'Un roman', 'image': upload,
+                'headline': 'À découvrir', 'rating': '5', 'body': 'Une belle lecture.',
+                'user': other.pk, 'ticket': existing.pk,
+            }, follow=True)
+            self.assertRedirects(response, reverse('accounts:home'))
+            self.assertContains(response, 'Votre critique a été publiée.')
+            self.assertContains(response, 'À découvrir')
+            review = Review.objects.get()
+            self.assertEqual((review.user, review.ticket.user), (self.reader, self.reader))
+            self.assertNotEqual(review.ticket_id, existing.pk)
+            self.assertEqual(review.ticket.title, 'Dune')
+            self.assertEqual((review.rating, review.body), (5, 'Une belle lecture.'))
+            self.assertTrue(review.ticket.image.storage.exists(review.ticket.image.name))
+            self.assertContains(response, review.ticket.image.url)
+
+    def test_invalid_forms_save_neither_record_and_keep_input(self):
+        self.client.force_login(self.reader)
+        for changes, invalid_forms in (
+            ({'title': ''}, ('ticket_form',)),
+            ({'rating': '6'}, ('review_form',)),
+            ({'title': '', 'rating': '6'}, ('ticket_form', 'review_form')),
+        ):
+            with self.subTest(changes=changes):
+                data = {'title': 'Dune', 'headline': 'Mon avis', 'rating': '0'}
+                data.update(changes)
+                response = self.client.post(self.url, data)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'Mon avis')
+                for name in invalid_forms:
+                    self.assertTrue(response.context[name].errors)
+                self.assertFalse(Ticket.objects.exists())
+                self.assertFalse(Review.objects.exists())
+
+    def test_anonymous_and_missing_csrf_posts_are_rejected(self):
+        data = {'title': 'Dune', 'headline': 'Mon avis', 'rating': '0'}
+        self.assertRedirects(self.client.post(self.url, data), f"{reverse('accounts:login')}?next={self.url}")
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.reader)
+        self.assertEqual(client.post(self.url, data).status_code, 403)
+        self.assertFalse(Ticket.objects.exists())
+        self.assertFalse(Review.objects.exists())
+
+    def test_database_failure_rolls_back_ticket_creation(self):
+        self.client.force_login(self.reader)
+        with patch.object(Review, 'save', side_effect=IntegrityError('Échec simulé')):
+            with self.assertRaises(IntegrityError):
+                self.client.post(self.url, {'title': 'Dune', 'headline': 'Mon avis', 'rating': '0'})
+        self.assertFalse(Ticket.objects.exists())
+        self.assertFalse(Review.objects.exists())
+
+    def test_optional_fields_can_be_empty_and_zero_rating_is_accepted(self):
+        self.client.force_login(self.reader)
+        response = self.client.post(self.url, {'title': 'Dune', 'headline': 'Mon avis', 'rating': '0'})
+        self.assertRedirects(response, reverse('accounts:home'))
+        review = Review.objects.get()
+        self.assertEqual(review.rating, 0)
+        self.assertEqual(review.body, '')
+        self.assertFalse(review.ticket.image)
+        self.assertEqual(review.ticket.description, '')
 
 
 class ReviewCreateTests(TestCase):

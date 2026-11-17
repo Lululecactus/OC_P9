@@ -8,13 +8,14 @@ L’application propose l’inscription, la connexion et la déconnexion, ainsi 
 espace réservé aux lecteurs connectés. Ils peuvent créer, modifier et supprimer
 leurs demandes de critique, publier une critique en réponse à une demande visible,
 puis modifier ou supprimer leurs propres critiques depuis le fil de lecture.
+Ils peuvent aussi créer un billet et sa critique en une seule publication,
+avec une image facultative pour le livre ou l’article.
 La suppression d’une critique conserve le billet associé.
 
 Le fil réunit les publications du lecteur, celles des personnes suivies et les
 critiques répondant à ses propres billets, des plus récentes aux plus anciennes.
 Le modèle d’abonnement existe ; sa gestion depuis l’interface reste à développer,
-ainsi que la page des publications personnelles et la création simultanée d’un
-billet et de sa critique.
+ainsi que la page des publications personnelles.
 
 ## Installation (macOS / Linux)
 

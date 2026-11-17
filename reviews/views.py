@@ -2,6 +2,7 @@
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
@@ -41,6 +42,32 @@ def ticket_delete(request, pk):
         messages.success(request, 'Votre demande de critique a été supprimée.')
         return redirect('accounts:home')
     return render(request, 'reviews/ticket_confirm_delete.html', {'ticket': ticket})
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def review_create_with_ticket(request):
+    """Publie un nouveau billet et sa critique depuis un seul formulaire."""
+    if request.method == 'POST':
+        ticket_form = TicketForm(request.POST, request.FILES, instance=Ticket(user=request.user))
+        review_form = ReviewForm(request.POST, instance=Review(user=request.user))
+        # Valider les deux formulaires pour afficher toutes les erreurs à la fois.
+        ticket_valid = ticket_form.is_valid()
+        review_valid = review_form.is_valid()
+        if ticket_valid and review_valid:
+            with transaction.atomic():
+                ticket = ticket_form.save()
+                review = review_form.save(commit=False)
+                review.ticket = ticket
+                review.save()
+            messages.success(request, 'Votre critique a été publiée.')
+            return redirect('accounts:home')
+    else:
+        ticket_form = TicketForm()
+        review_form = ReviewForm()
+    return render(request, 'reviews/review_create_with_ticket.html', {
+        'ticket_form': ticket_form, 'review_form': review_form,
+    })
 
 
 @login_required
