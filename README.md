@@ -14,8 +14,9 @@ La suppression d’une critique conserve le billet associé.
 
 Le fil réunit les publications du lecteur, celles des personnes suivies et les
 critiques répondant à ses propres billets, des plus récentes aux plus anciennes.
-Le modèle d’abonnement existe ; sa gestion depuis l’interface reste à développer,
-ainsi que la page des publications personnelles.
+La page Abonnements permet de suivre un lecteur actif par son nom d’utilisateur
+exact, de se désabonner et de consulter ses abonnements et ses abonnés.
+La page des publications personnelles reste à développer.
 
 ## Installation (macOS / Linux)
 

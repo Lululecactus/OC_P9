@@ -1,0 +1,47 @@
+{% extends 'accounts/reader_base.html' %}
+{% block title %}Abonnements — LITRevu{% endblock %}
+{% block content %}
+    <section class="ticket-editor" aria-labelledby="page-title">
+        <h1 id="page-title">Abonnements</h1>
+        {% for message in messages %}
+            <p class="account-feedback" role="status">{{ message }}</p>
+        {% endfor %}
+        <section aria-labelledby="follow-title">
+            <h2 id="follow-title">Suivre un lecteur</h2>
+            <p>Saisissez son nom d’utilisateur exact pour retrouver ses publications dans votre fil.</p>
+            <form method="post" class="account-form">
+                {% csrf_token %}
+                {{ form.as_div }}
+                <button type="submit">Suivre</button>
+            </form>
+        </section>
+        <section aria-labelledby="following-title">
+            <h2 id="following-title">Mes abonnements</h2>
+            <ul class="ticket-list">
+                {% for follow in following %}
+                    <li class="ticket-entry">
+                        <div class="ticket-copy">
+                            <p>{{ follow.followed_user.username }}</p>
+                            <form method="post" action="{% url 'reviews:unfollow' follow.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" aria-label="Ne plus suivre {{ follow.followed_user.username }}">Se désabonner</button>
+                            </form>
+                        </div>
+                    </li>
+                {% empty %}
+                    <li>Vous ne suivez encore aucun lecteur.</li>
+                {% endfor %}
+            </ul>
+        </section>
+        <section aria-labelledby="followers-title">
+            <h2 id="followers-title">Mes abonnés</h2>
+            <ul class="ticket-list">
+                {% for follow in followers %}
+                    <li class="ticket-entry"><span class="ticket-copy">{{ follow.user.username }}</span></li>
+                {% empty %}
+                    <li>Aucun lecteur ne vous suit pour le moment.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </section>
+{% endblock %}

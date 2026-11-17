@@ -1,8 +1,31 @@
 """Formulaires de publication des lecteurs."""
 
 from django import forms
+from django.contrib.auth import get_user_model
 
 from .models import Review, Ticket
+
+
+class FollowForm(forms.Form):
+    """Recherche un lecteur par son nom exact et vérifie l’abonnement."""
+
+    username = forms.CharField(label='Nom d’utilisateur', max_length=150)
+
+    def __init__(self, *args, reader, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.reader = reader
+
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        try:
+            self.followed_user = get_user_model().objects.get(username=username, is_active=True)
+        except get_user_model().DoesNotExist:
+            raise forms.ValidationError('Aucun lecteur actif ne porte ce nom.')
+        if self.followed_user == self.reader:
+            raise forms.ValidationError('Vous ne pouvez pas vous suivre vous-même.')
+        if self.reader.following.filter(followed_user=self.followed_user).exists():
+            raise forms.ValidationError('Vous suivez déjà ce lecteur.')
+        return username
 
 
 class TicketForm(forms.ModelForm):

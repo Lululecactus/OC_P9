@@ -15,6 +15,83 @@ from django.urls import reverse
 from .models import Review, Ticket, UserFollows
 
 
+class SubscriptionViewTests(TestCase):
+    """Vérifie les abonnements et leur effet sur le fil de lecture."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.alice = get_user_model().objects.create_user(username='alice')
+        cls.bob = get_user_model().objects.create_user(username='bob')
+        cls.url = reverse('reviews:subscriptions')
+
+    def test_follow_and_unfollow_update_feed_and_keep_incoming_follow(self):
+        incoming = UserFollows.objects.create(user=self.bob, followed_user=self.alice)
+        ticket = Ticket.objects.create(title='Livre de Bob', user=self.bob)
+        Review.objects.create(ticket=ticket, user=self.bob, headline='Avis de Bob', rating=4)
+        self.client.force_login(self.alice)
+        self.assertNotContains(self.client.get(reverse('accounts:home')), 'Livre de Bob')
+        response = self.client.post(self.url, {'username': 'bob', 'user': self.bob.pk}, follow=True)
+        self.assertRedirects(response, self.url)
+        self.assertContains(response, 'Vous suivez désormais bob.')
+        follow = UserFollows.objects.get(user=self.alice, followed_user=self.bob)
+        self.assertEqual(list(response.context['following']), [follow])
+        self.assertEqual(list(response.context['followers']), [incoming])
+        home = self.client.get(reverse('accounts:home'))
+        self.assertContains(home, 'Livre de Bob')
+        self.assertContains(home, 'Avis de Bob')
+        response = self.client.post(reverse('reviews:unfollow', args=[follow.pk]), follow=True)
+        self.assertContains(response, 'Vous ne suivez plus bob.')
+        home = self.client.get(reverse('accounts:home'))
+        self.assertNotContains(home, 'Livre de Bob')
+        self.assertNotContains(home, 'Avis de Bob')
+        self.assertTrue(UserFollows.objects.filter(pk=incoming.pk).exists())
+
+    def test_invalid_names_self_follow_and_duplicates_are_rejected(self):
+        get_user_model().objects.create_user(username='inactif', is_active=False)
+        self.client.force_login(self.alice)
+        for username in ('', 'inconnu', 'alice', 'inactif'):
+            with self.subTest(username=username):
+                response = self.client.post(self.url, {'username': username})
+                self.assertIn('username', response.context['form'].errors)
+                self.assertFalse(UserFollows.objects.exists())
+        self.client.post(self.url, {'username': 'bob'})
+        response = self.client.post(self.url, {'username': 'bob'})
+        self.assertContains(response, 'Vous suivez déjà ce lecteur.')
+        self.assertEqual(UserFollows.objects.count(), 1)
+
+    def test_empty_lists_and_navigation(self):
+        self.client.force_login(self.alice)
+        self.assertContains(self.client.get(reverse('accounts:home')), self.url)
+        response = self.client.get(self.url)
+        self.assertContains(response, 'Vous ne suivez encore aucun lecteur.')
+        self.assertContains(response, 'Aucun lecteur ne vous suit pour le moment.')
+
+    def test_only_owner_can_unfollow_and_get_does_not_delete(self):
+        follow = UserFollows.objects.create(user=self.alice, followed_user=self.bob)
+        url = reverse('reviews:unfollow', args=[follow.pk])
+        self.client.force_login(self.alice)
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.client.force_login(self.bob)
+        self.assertEqual(self.client.post(url).status_code, 404)
+        self.assertTrue(UserFollows.objects.filter(pk=follow.pk).exists())
+
+    def test_login_and_csrf_are_required_for_mutations(self):
+        follow = UserFollows.objects.create(user=self.alice, followed_user=self.bob)
+        url = reverse('reviews:unfollow', args=[follow.pk])
+        for target in (self.url, url):
+            self.assertRedirects(self.client.post(target), f"{reverse('accounts:login')}?next={target}")
+        self.assertRedirects(self.client.get(self.url), f"{reverse('accounts:login')}?next={self.url}")
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.alice)
+        self.assertEqual(client.post(url).status_code, 403)
+        self.assertEqual(client.post(self.url, {'username': 'bob'}).status_code, 403)
+        self.assertTrue(UserFollows.objects.filter(pk=follow.pk).exists())
+        client.get(self.url)
+        response = client.post(url, {'csrfmiddlewaretoken': client.cookies['csrftoken'].value})
+        self.assertRedirects(response, self.url)
+        self.assertFalse(UserFollows.objects.exists())
+
+
 class ReviewWithTicketCreateTests(TestCase):
     """Vérifie la publication simultanée d’un billet et de sa critique."""
 

@@ -7,6 +7,8 @@ from . import views
 app_name = 'reviews'
 
 urlpatterns = [
+    path('abonnements/', views.subscriptions, name='subscriptions'),
+    path('abonnements/<int:pk>/supprimer/', views.unfollow, name='unfollow'),
     path('critiques/nouvelle/', views.review_create_with_ticket, name='review_create_with_ticket'),
     path('billets/nouveau/', views.ticket_form, name='ticket_create'),
     path('billets/<int:pk>/modifier/', views.ticket_form, name='ticket_edit'),

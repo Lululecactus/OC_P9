@@ -22,6 +22,7 @@
         <nav class="reader-nav" aria-label="Navigation principale">
             <a href="{% url 'accounts:home' %}"{% if request.resolver_match.view_name == 'accounts:home' %} aria-current="page"{% endif %}>Mon espace</a>
             <a href="{% url 'accounts:home' %}#reading-feed">Mon fil de lecture</a>
+            <a href="{% url 'reviews:subscriptions' %}"{% if request.resolver_match.view_name == 'reviews:subscriptions' %} aria-current="page"{% endif %}>Abonnements</a>
         </nav>
         <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
             {% csrf_token %}

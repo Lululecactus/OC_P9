@@ -4,10 +4,38 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
-from .forms import ReviewForm, TicketForm
-from .models import Review, Ticket
+from .forms import FollowForm, ReviewForm, TicketForm
+from .models import Review, Ticket, UserFollows
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def subscriptions(request):
+    """Affiche les relations du lecteur et permet de suivre un autre compte."""
+    form = FollowForm(request.POST if request.method == 'POST' else None, reader=request.user)
+    if request.method == 'POST' and form.is_valid():
+        # La contrainte unique et get_or_create protègent aussi les envois simultanés.
+        UserFollows.objects.get_or_create(user=request.user, followed_user=form.followed_user)
+        messages.success(request, f'Vous suivez désormais {form.followed_user.username}.')
+        return redirect('reviews:subscriptions')
+    return render(request, 'reviews/subscriptions.html', {
+        'form': form,
+        'following': request.user.following.select_related('followed_user').order_by('followed_user__username'),
+        'followers': request.user.followed_by.select_related('user').order_by('user__username'),
+    })
+
+
+@login_required
+@require_POST
+def unfollow(request, pk):
+    """Supprime uniquement un abonnement appartenant au lecteur connecté."""
+    follow = get_object_or_404(UserFollows, pk=pk, user=request.user)
+    username = follow.followed_user.username
+    follow.delete()
+    messages.success(request, f'Vous ne suivez plus {username}.')
+    return redirect('reviews:subscriptions')
 
 
 @login_required
