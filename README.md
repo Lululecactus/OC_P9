@@ -4,11 +4,17 @@ Application Django de critiques littéraires, exécutée en local.
 
 ## État actuel
 
-Étapes 1 et 2 : initialisation, modèle utilisateur personnalisé, administration,
-inscription, connexion et déconnexion. L’accueil est réservé aux personnes connectées.
-Les billets, critiques, abonnements et le véritable flux restent à développer.
-La zone d’inscription de la connexion reste à repositionner à gauche pour reprendre
-l’organisation du wireframe 1.
+L’application propose l’inscription, la connexion et la déconnexion, ainsi qu’un
+espace réservé aux lecteurs connectés. Ils peuvent créer, modifier et supprimer
+leurs demandes de critique, publier une critique en réponse à une demande visible,
+puis modifier ou supprimer leurs propres critiques depuis le fil de lecture.
+La suppression d’une critique conserve le billet associé.
+
+Le fil réunit les publications du lecteur, celles des personnes suivies et les
+critiques répondant à ses propres billets, des plus récentes aux plus anciennes.
+Le modèle d’abonnement existe ; sa gestion depuis l’interface reste à développer,
+ainsi que la page des publications personnelles et la création simultanée d’un
+billet et de sa critique.
 
 ## Installation (macOS / Linux)
 
@@ -61,7 +67,7 @@ Le déploiement public ne fait pas partie de cette étape.
 python manage.py check
 python manage.py showmigrations
 python manage.py makemigrations --check --dry-run
-python manage.py test accounts
+python manage.py test
 ```
 
 Les tests utilisent une base temporaire distincte de `db.sqlite3`.
@@ -70,6 +76,7 @@ Les tests utilisent une base temporaire distincte de `db.sqlite3`.
 
 - `config/` : réglages et routes principales.
 - `accounts/` : modèle utilisateur, formulaires, vues, routes et tests.
+- `reviews/` : billets, critiques, abonnements, formulaires, vues et tests associés.
 - `accounts/templates/accounts/` : pages produites par Django.
 - `accounts/static/accounts/` : CSS, JavaScript, images et police.
 

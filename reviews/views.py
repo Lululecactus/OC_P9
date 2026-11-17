@@ -58,3 +58,33 @@ def review_create(request, ticket_pk):
     else:
         form = ReviewForm()
     return render(request, 'reviews/review_form.html', {'ticket': ticket, 'form': form})
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def review_edit(request, pk):
+    """Permet à l’auteur de corriger sa critique, même après un désabonnement."""
+    review = get_object_or_404(Review, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Votre critique a été modifiée.')
+            return redirect('accounts:home')
+    else:
+        form = ReviewForm(instance=review)
+    return render(request, 'reviews/review_form.html', {
+        'ticket': review.ticket, 'form': form,
+    })
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def review_delete(request, pk):
+    """Confirme puis supprime uniquement la critique du lecteur connecté."""
+    review = get_object_or_404(Review, pk=pk, user=request.user)
+    if request.method == 'POST':
+        review.delete()
+        messages.success(request, 'Votre critique a été supprimée.')
+        return redirect('accounts:home')
+    return render(request, 'reviews/review_confirm_delete.html', {'review': review})

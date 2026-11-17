@@ -1,8 +1,8 @@
 {% extends 'accounts/reader_base.html' %}
-{% block title %}Écrire une critique — LITRevu{% endblock %}
+{% block title %}{% if form.instance.pk %}Modifier ma critique{% else %}Écrire une critique{% endif %} — LITRevu{% endblock %}
 {% block content %}
     <section class="ticket-editor" aria-labelledby="page-title">
-        <h1 id="page-title">Écrire une critique</h1>
+        <h1 id="page-title">{% if form.instance.pk %}Modifier ma critique{% else %}Écrire une critique{% endif %}</h1>
         <h2>{{ ticket.title }}</h2>
         <p>Demande de {{ ticket.user.username }}</p>
         {% if ticket.description %}{{ ticket.description|linebreaks }}{% endif %}
@@ -10,7 +10,7 @@
         <form method="post" class="account-form review-form">
             {% csrf_token %}
             {{ form.as_div }}
-            <button type="submit">Publier ma critique</button>
+            <button type="submit">{% if form.instance.pk %}Enregistrer les modifications{% else %}Publier ma critique{% endif %}</button>
         </form>
         <a class="reader-text-link" href="{% url 'accounts:home' %}">Annuler et revenir à mon espace</a>
     </section>

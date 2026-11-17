@@ -38,6 +38,12 @@
                             <h3>{{ post.headline }}</h3>
                             <p><strong>{{ post.rating }} / 5</strong> · {{ post.user.username }} · <time datetime="{{ post.time_created|date:'c' }}">{{ post.time_created|date:'j F Y' }}</time></p>
                             {% if post.body %}{{ post.body|linebreaks }}{% endif %}
+                            {% if post.user_id == user.pk %}
+                            <div class="ticket-actions">
+                                <a class="reader-text-link" href="{% url 'reviews:review_edit' post.pk %}" aria-label="Modifier la critique « {{ post.headline }} »">Modifier</a>
+                                <a class="reader-text-link" href="{% url 'reviews:review_delete' post.pk %}" aria-label="Supprimer la critique « {{ post.headline }} »">Supprimer</a>
+                            </div>
+                            {% endif %}
                         </div>
                     </li>
                     {% else %}

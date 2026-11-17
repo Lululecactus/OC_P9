@@ -64,6 +64,99 @@ class ReviewCreateTests(TestCase):
         self.assertFalse(Review.objects.exists())
 
 
+class ReviewManagementTests(TestCase):
+    """Protège la modification et la suppression des critiques par leur auteur."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.author = get_user_model().objects.create_user(username='critique')
+        cls.other = get_user_model().objects.create_user(username='auteur_billet')
+        cls.ticket = Ticket.objects.create(title='Dune', user=cls.other)
+        cls.review = Review.objects.create(
+            ticket=cls.ticket, user=cls.author, headline='Mon avis', rating=4, body='À lire.',
+        )
+        cls.edit_url = reverse('reviews:review_edit', args=[cls.review.pk])
+        cls.delete_url = reverse('reviews:review_delete', args=[cls.review.pk])
+
+    def test_author_edits_without_following_and_cannot_change_relations(self):
+        self.client.force_login(self.author)
+        home = self.client.get(reverse('accounts:home'))
+        self.assertContains(home, self.edit_url)
+        self.assertContains(home, self.delete_url)
+        response = self.client.get(self.edit_url)
+        self.assertContains(response, 'Modifier ma critique')
+        self.assertEqual(response.context['form'].initial['rating'], 4)
+        self.assertContains(response, 'À lire.')
+        other_ticket = Ticket.objects.create(title='Autre livre', user=self.author)
+        response = self.client.post(self.edit_url, {
+            'headline': 'Avis corrigé', 'rating': '0', 'body': 'Après relecture.',
+            'user': self.other.pk, 'ticket': other_ticket.pk,
+        }, follow=True)
+        self.assertRedirects(response, reverse('accounts:home'))
+        self.assertContains(response, 'Votre critique a été modifiée.')
+        self.assertContains(response, 'Avis corrigé')
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.rating, 0)
+        self.assertEqual(self.review.body, 'Après relecture.')
+        self.assertEqual(self.review.user, self.author)
+        self.assertEqual(self.review.ticket, self.ticket)
+        self.assertEqual(Review.objects.count(), 1)
+
+    def test_invalid_edit_keeps_original_review(self):
+        self.client.force_login(self.author)
+        response = self.client.post(self.edit_url, {'headline': 'Avis corrigé', 'rating': '6'})
+        self.assertIn('rating', response.context['form'].errors)
+        self.assertContains(response, 'Avis corrigé')
+        self.assertContains(response, 'Dune')
+        self.review.refresh_from_db()
+        self.assertEqual((self.review.headline, self.review.rating), ('Mon avis', 4))
+
+    def test_anonymous_and_ticket_owner_cannot_manage_another_readers_review(self):
+        for url in (self.edit_url, self.delete_url):
+            for method in ('get', 'post'):
+                self.assertRedirects(
+                    getattr(self.client, method)(url), f"{reverse('accounts:login')}?next={url}",
+                )
+        self.client.force_login(self.other)
+        home = self.client.get(reverse('accounts:home'))
+        self.assertContains(home, 'Mon avis')
+        for url in (self.edit_url, self.delete_url):
+            self.assertNotContains(home, url)
+            self.assertEqual(self.client.get(url).status_code, 404)
+            self.assertEqual(self.client.post(url, {'headline': 'Interdit', 'rating': '1'}).status_code, 404)
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.headline, 'Mon avis')
+
+    def test_deletion_requires_confirmation_and_preserves_ticket_and_other_reviews(self):
+        other_review = Review.objects.create(
+            ticket=self.ticket, user=self.other, headline='Un autre avis', rating=3,
+        )
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.author)
+        self.assertContains(client.get(self.delete_url), 'Supprimer « Mon avis »')
+        self.assertTrue(Review.objects.filter(pk=self.review.pk).exists())
+        self.assertEqual(client.post(self.delete_url).status_code, 403)
+        self.assertTrue(Review.objects.filter(pk=self.review.pk).exists())
+        response = client.post(self.delete_url, {
+            'csrfmiddlewaretoken': client.cookies['csrftoken'].value,
+        }, follow=True)
+        self.assertRedirects(response, reverse('accounts:home'))
+        self.assertContains(response, 'Votre critique a été supprimée.')
+        self.assertFalse(Review.objects.filter(pk=self.review.pk).exists())
+        self.assertTrue(Ticket.objects.filter(pk=self.ticket.pk).exists())
+        self.assertTrue(Review.objects.filter(pk=other_review.pk).exists())
+
+    def test_edit_requires_csrf_and_missing_reviews_return_404(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.author)
+        self.assertEqual(client.post(self.edit_url, {'headline': 'Interdit', 'rating': '1'}).status_code, 403)
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.headline, 'Mon avis')
+        self.review.delete()
+        for url in (self.edit_url, self.delete_url):
+            self.assertEqual(client.get(url).status_code, 404)
+
+
 class TicketCreateTests(TestCase):
     """Vérifie la publication depuis l’espace lecteur."""
 
