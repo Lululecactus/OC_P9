@@ -5,6 +5,7 @@ from itertools import chain
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_http_methods
 
 from reviews.models import Review, Ticket
 
@@ -16,6 +17,7 @@ def entry(request):
     return redirect('accounts:login')
 
 
+@require_http_methods(['GET', 'POST'])
 def signup(request):
     """Affiche l’inscription et crée un lecteur si les données sont valides."""
     # POST correspond à l’envoi du formulaire par le navigateur.

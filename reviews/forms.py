@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 
 from .models import Review, Ticket
+from .image_fields import CoverImageField
 
 
 class FollowForm(forms.Form):
@@ -30,6 +31,11 @@ class FollowForm(forms.Form):
 
 class TicketForm(forms.ModelForm):
     """Prépare et valide la saisie d’une demande de critique."""
+
+    image = CoverImageField(
+        required=False, label='Image (facultative)',
+        help_text='PNG, JPEG ou WebP — 5 Mo et 12 millions de pixels maximum.',
+    )
 
     class Meta:
         model = Ticket

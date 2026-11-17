@@ -3,12 +3,21 @@
 from django.contrib import admin
 
 from .models import Review, Ticket, UserFollows
+from .forms import TicketForm
+
+
+class AdminTicketForm(TicketForm):
+    """Réserve le choix de l’auteur à l’administration."""
+
+    class Meta(TicketForm.Meta):
+        fields = ('title', 'description', 'user', 'image')
 
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
     """Affiche les informations utiles pour retrouver un billet."""
 
+    form = AdminTicketForm
     list_display = ('title', 'user', 'time_created')
     search_fields = ('title', 'user__username')
     readonly_fields = ('time_created',)

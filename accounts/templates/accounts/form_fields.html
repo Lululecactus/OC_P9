@@ -20,10 +20,10 @@
             {% if field.name == 'password1' %}
                 <details class="password-help">
                     <summary>Conseils pour le mot de passe</summary>
-                    <div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>
+                    <div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>
                 </details>
             {% else %}
-                <div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>
+                <div class="helptext" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>
             {% endif %}
         {% endif %}
     </div>

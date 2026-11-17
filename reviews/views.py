@@ -1,13 +1,46 @@
 """Pages de publication des lecteurs."""
 
+from PIL import Image, UnidentifiedImageError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Q
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods, require_POST, require_safe
+from django.views.decorators.cache import never_cache
 
 from .forms import FollowForm, ReviewForm, TicketForm
 from .models import Review, Ticket, UserFollows
+
+
+@login_required
+@require_safe
+@never_cache
+def ticket_image(request, path):
+    """Protège les images avec les mêmes droits de lecture que les publications."""
+    visible_tickets = Ticket.visible_to(request.user).values('pk')
+    reviewed_tickets = Review.visible_to(request.user).values('ticket_id')
+    ticket = get_object_or_404(
+        Ticket.objects.filter(Q(pk__in=visible_tickets) | Q(pk__in=reviewed_tickets)),
+        image=path,
+    )
+    try:
+        stream = ticket.image.open('rb')
+    except (FileNotFoundError, OSError):
+        raise Http404
+    try:
+        # Ne jamais déduire le type HTTP du nom fourni lors d’un ancien envoi.
+        image = Image.open(stream, formats=['PNG', 'JPEG', 'WEBP'])
+        content_type = Image.MIME[image.format]
+        stream.seek(0)
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        stream.close()
+        raise Http404
+    response = FileResponse(stream, content_type=content_type)
+    response['X-Content-Type-Options'] = 'nosniff'
+    response['Content-Security-Policy'] = "default-src 'none'; sandbox"
+    return response
 
 
 @login_required
@@ -39,6 +72,7 @@ def unfollow(request, pk):
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
 def ticket_form(request, pk=None):
     """Crée une demande ou modifie celle du lecteur connecté."""
     if pk is None:

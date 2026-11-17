@@ -20,7 +20,7 @@ La page des publications personnelles reste à développer.
 
 ## Installation (macOS / Linux)
 
-Le projet a été testé avec Python 3.14 et Django 5.2.18.
+Le projet a été testé avec Python 3.14 et Django 5.2.19.
 
 ```bash
 git clone https://github.com/Lululecactus/OC_P9.git
@@ -73,6 +73,21 @@ python manage.py test
 ```
 
 Les tests utilisent une base temporaire distincte de `db.sqlite3`.
+
+## Sécurité
+
+Le [rapport d’audit du 17 novembre 2026](SECURITY_AUDIT.md) décrit les contrôles,
+les corrections et les risques restant à traiter. Les tests couvrent notamment
+les injections SQL, l’échappement HTML, CSRF, les droits d’accès et les images.
+Les images envoyées sont limitées à 5 Mo et 12 millions de pixels, réencodées
+en PNG et accessibles uniquement aux lecteurs autorisés à voir la publication.
+Les formats d’entrée acceptés sont PNG, JPEG et WebP.
+
+Le projet reste prévu pour un usage local : la base versionnée doit être
+préparée avec des données de démonstration et sans sessions avant livraison.
+Une mise en ligne nécessite aussi HTTPS, des paramètres de production et une
+limitation des tentatives de connexion ; ces protections ne sont pas encore
+configurées.
 
 ## Organisation
 
